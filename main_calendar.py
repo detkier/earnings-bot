@@ -1,26 +1,20 @@
-# main_calendar.py — 月底預覽下個月財報行事曆
-from datetime import date
-from calendar import monthrange
-from fetchers.calendar import fetch_next_month_calendar
+# main_calendar.py — 每週預覽下週財報行事曆
+from fetchers.calendar import fetch_next_week_calendar
 from publishers.line import push_blocks
 
 
 def main():
-    print("抓取下個月財報行事曆...")
-    entries = fetch_next_month_calendar()
+    print("抓取下週財報行事曆...")
+    entries, from_date, to_date = fetch_next_week_calendar()
 
     if not entries:
-        print("沒有找到重點公司財報")
+        print("下週無重點公司財報")
+        push_blocks("📊 下週財報行事曆", ["本週無重點公司財報。"])
         return
 
-    today = date.today()
-    if today.month == 12:
-        year, month = today.year + 1, 1
-    else:
-        year, month = today.year, today.month + 1
-    month_str = f"{year}/{month:02d}"
-
+    week_str = f"{from_date.strftime('%m/%d')}－{to_date.strftime('%m/%d')}"
     print(f"找到 {len(entries)} 筆財報")
+
     blocks = []
     for e in entries:
         eps = f"EPS 預估：${e['eps_est']:.2f}" if e['eps_est'] else ""
@@ -37,7 +31,7 @@ def main():
             line += f"\n   {detail}"
         blocks.append(line)
 
-    push_blocks(f"📊 {month_str} 財報行事曆", blocks)
+    push_blocks(f"📊 下週財報行事曆 {week_str}", blocks)
     print(f"已推送 {len(entries)} 筆")
 
 

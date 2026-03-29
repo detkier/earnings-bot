@@ -2,9 +2,8 @@ name: 財報推送
 
 on:
   schedule:
-    - cron: "0 1 * * *"    # 每天 09:00 台灣時間（抓昨晚美股財後財報）
-    - cron: "0 14 * * *"   # 每天 22:00 台灣時間（抓今日美股盤後財報）
-    - cron: "0 0 25 * *"   # 每月 25 日 08:00 台灣時間（預覽下月財報行事曆）
+    - cron: "0 1 * * *"      # 每天 09:00 台灣時間（推送昨日/今日已公布財報）
+    - cron: "0 0 * * 0"      # 每週日 08:00 台灣時間（預覽下週財報行事曆）
   workflow_dispatch:
     inputs:
       mode:
@@ -29,15 +28,15 @@ jobs:
         run: pip install requests python-dotenv
 
       - name: 推送財報結果（每日）
-        if: ${{ github.event.schedule != '0 0 25 * *' && github.event.inputs.mode != 'calendar' }}
+        if: ${{ github.event.schedule != '0 0 * * 0' && github.event.inputs.mode != 'calendar' }}
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
           LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
         run: python main_earnings.py
 
-      - name: 推送月度行事曆（每月 25 日）
-        if: ${{ github.event.schedule == '0 0 25 * *' || github.event.inputs.mode == 'calendar' }}
+      - name: 推送週度行事曆（每週日）
+        if: ${{ github.event.schedule == '0 0 * * 0' || github.event.inputs.mode == 'calendar' }}
         env:
           FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
           LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}

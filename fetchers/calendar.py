@@ -1,19 +1,15 @@
 import requests
 from datetime import date, timedelta
-from calendar import monthrange
 from config import FMP_API_KEY, WATCHLIST, COMPANY_NAMES
 
 
-def fetch_next_month_calendar() -> list[dict]:
-    """抓下個月會公布財報的重點公司。"""
+def fetch_next_week_calendar() -> list[dict]:
+    """抓下週會公布財報的重點公司（週一到週五）。"""
     today = date.today()
-    # 計算下個月的起訖日
-    if today.month == 12:
-        year, month = today.year + 1, 1
-    else:
-        year, month = today.year, today.month + 1
-    from_date = date(year, month, 1)
-    to_date = date(year, month, monthrange(year, month)[1])
+    # 下週一
+    days_until_monday = (7 - today.weekday()) % 7 or 7
+    from_date = today + timedelta(days=days_until_monday)
+    to_date = from_date + timedelta(days=4)  # 週一到週五
 
     url = (
         f"https://financialmodelingprep.com/stable/earnings-calendar"
@@ -43,4 +39,4 @@ def fetch_next_month_calendar() -> list[dict]:
         })
 
     results.sort(key=lambda x: x["date"])
-    return results
+    return results, from_date, to_date
